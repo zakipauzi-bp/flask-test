@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import pickle
 import joblib
+import spacy
 
 app = Flask(__name__)
 
@@ -50,6 +51,7 @@ def predict():
 
     return render_template('result.html', prediction = my_prediction)
 
+nlp = spacy.load("en_core_web_sm")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=80)
