@@ -1,57 +1,48 @@
-from flask import Flask, render_template,url_for,request
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import train_test_split
-
+from flask import Flask,render_template,url_for,request
+import re
 import pandas as pd
-import pickle
-import joblib
 import spacy
+from spacy import displacy
+import en_core_web_sm
+
+nlp = spacy.load('en_core_web_sm')
 
 app = Flask(__name__)
 
 @app.route('/')
-def home():
-    return render_template('home.html')
+def index():
+	return render_template("index.html")
 
-@app.route('/predict', methods = ['POST'])
-def predict():
+@app.route('/process',methods=["POST"])
+def process():
+	if request.method == 'POST':
+		choice = request.form['taskoption']
+		rawtext = request.form['rawtext']
+		doc = nlp(rawtext)
+		d = []
+		for ent in doc.ents:
+			d.append((ent.label_, ent.text))
+			df = pd.DataFrame(d, columns=('named entity', 'output'))
+			ORG_named_entity = df.loc[df['named entity'] == 'ORG']['output']
+			PERSON_named_entity = df.loc[df['named entity'] == 'PERSON']['output']
+			GPE_named_entity = df.loc[df['named entity'] == 'GPE']['output']
+			MONEY_named_entity = df.loc[df['named entity'] == 'MONEY']['output']
+		if choice == 'organization':
+			results = ORG_named_entity
+			num_of_results = len(results)
+		elif choice == 'person':
+			results = PERSON_named_entity
+			num_of_results = len(results)
+		elif choice == 'geopolitical':
+			results = GPE_named_entity
+			num_of_results = len(results)
+		elif choice == 'money':
+			results = MONEY_named_entity
+			num_of_results = len(results)
 
-    df = pd.read_csv("data/Youtube01-Psy.csv")
-    df_data = df[['CONTENT', 'CLASS']]
 
-    # Features and Labels
-    df_x = df_data['CONTENT']
-    df_y = df_data.CLASS
+	return render_template("index.html",results=results,num_of_results = num_of_results)
 
-    # Extract the features with countVectorizer
-    corpus = df_x
-    cv = CountVectorizer()
-    X = cv.fit_transform(corpus)
-
-    # Split the sets
-    X_train, X_test, y_train, y_test = train_test_split(X, df_y, test_size = 0.33, random_state = 42)
-
-    # Navie Bayes
-    clf = MultinomialNB()
-    clf.fit(X_train, y_train)
-    clf.score(X_test, y_test)
-
-    # Save Model
-    joblib.dump(clf, 'model.pkl')
-    print("Model dumped!")
-
-    clf = joblib.load('model.pkl')
-
-    if request.method == 'POST':
-        comment = request.form['comment']
-        data = [comment]
-        vect = cv.transform(data).toarray()
-        my_prediction = clf.predict(vect)
-
-    return render_template('result.html', prediction = my_prediction)
-
-nlp = spacy.load("en_core_web_sm")
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+	app.run(debug=True)
