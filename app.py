@@ -5,7 +5,7 @@ import spacy
 from spacy import displacy
 import en_core_web_sm
 
-nlp = spacy.load('en_core_web_sm')
+nlp = spacy.load('en_core_web_lg')
 
 app = Flask(__name__)
 
@@ -45,4 +45,5 @@ def process():
 
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0:81')
+	app.debug = True
+	app.run(host='0.0.0.0', port = 81)
