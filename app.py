@@ -27,7 +27,7 @@ def process():
 			PERSON_named_entity = df.loc[df['named entity'] == 'PERSON']['output']
 			GPE_named_entity = df.loc[df['named entity'] == 'GPE']['output']
 			MONEY_named_entity = df.loc[df['named entity'] == 'MONEY']['output']
-		if choice == 'organization':
+		if choice == 'organisation':
 			results = ORG_named_entity
 			num_of_results = len(results)
 		elif choice == 'person':
@@ -46,4 +46,4 @@ def process():
 
 if __name__ == '__main__':
 	app.debug = True
-	app.run(host='0.0.0.0', port = 81)
+	app.run(host='0.0.0.0', port = 80)
